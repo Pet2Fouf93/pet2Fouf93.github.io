@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mon adresse</title>
+  <style>
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    .wrap{min-height:100%;display:grid;place-items:center;background:#0f172a;color:#e2e8f0}
+    .card{background:#111827;padding:2rem 2.5rem;border-radius:1.25rem;box-shadow:0 10px 30px rgba(0,0,0,.4);text-align:center}
+    .ip{font-size:2rem;font-weight:700;letter-spacing:.5px;margin:.25rem 0}
+    .muted{opacity:.7;font-size:.95rem}
+    button{margin-top:1rem;padding:.6rem 1rem;border-radius:.75rem;border:0;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="muted">Votre adresse publique</div>
+      <div class="ip" id="ip">…</div>
+      <div class="muted" id="meta"></div>
+      <button id="refresh">Actualiser</button>
+    </div>
+  </div>
+  <script>
+    async function getIP() {
+      // Cloudflare renvoie un texte du type:
+      // ip=203.0.113.42
+      // colo=...
+      // loc=FR
+      const r = await fetch("https://www.cloudflare.com/cdn-cgi/trace", {cache:"no-store"});
+      const txt = await r.text();
+      const map = Object.fromEntries(
+        txt.trim().split("\n").map(l => l.split("=")).filter(p => p.length===2)
+      );
+      document.getElementById("ip").textContent = map.ip || "inconnu";
+      const meta = [];
+      if (map.loc) meta.push(`Pays: ${map.loc}`);
+      if (map.colo) meta.push(`Noeud: ${map.colo}`);
+      document.getElementById("meta").textContent = meta.join(" · ");
+    }
+    document.getElementById("refresh").onclick = getIP;
+    getIP();
+  </script>
+</body>
+</html>
